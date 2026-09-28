@@ -19,7 +19,15 @@ Aplikasi IT Helpdesk satu organisasi (proyek portofolio). Backend Go + Gin + Pos
 | PostgreSQL | *(diisi saat TASK-003 — installer native Windows EDB)* | Docker tidak tersedia di mesin dev |
 | golang-migrate | *(diisi saat TASK-003 — keputusan D-02)* | |
 
-Versi library Go (Gin, pgx) dan frontend (React, Vite, Tailwind, TanStack Query) dikunci di `backend/go.mod` dan `frontend/package-lock.json` saat task terkait dikerjakan (keputusan D-04) — catat versinya di tabel ini.
+Versi library Go terkunci di `backend/go.mod` (keputusan D-04, diperbarui 28 September 2026):
+
+| Library | Versi | Dipakai di |
+| --- | --- | --- |
+| github.com/gin-gonic/gin | v1.12.0 | HTTP router (TASK-002) |
+| github.com/jackc/pgx/v5 | v5.11.0 | Driver PostgreSQL via database/sql (TASK-002) |
+| golang.org/x/sys | v0.41.0 | Sinyal CTRL_BREAK di tes Windows (TASK-002) |
+
+Versi library frontend (React, Vite, Tailwind, TanStack Query) dikunci di `frontend/package-lock.json` saat TASK-005.
 
 ## Perintah umum
 
