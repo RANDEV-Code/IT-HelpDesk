@@ -289,7 +289,7 @@ X-Request-ID: 258a911e-9012-4cd0-8e58-431ebe020e13
 
 | Atribut | Nilai |
 | --- | --- |
-| Milestone / Prioritas / Status | M0 / P0 / needs_verification (29 September 2026) — harness & gerbang lokal lulus; run CI hijau + `go test -race` menunggu push ke remote GitHub & runner Linux |
+| Milestone / Prioritas / Status | M0 / P0 / needs_verification (29 September 2026) — harness, gerbang lokal, dan `go test -race` (via MinGW GCC) lulus; hanya run CI hijau di GitHub menunggu push ke remote |
 | DEV | DEV-13 (bertahap sejak awal) |
 | Referensi | TEST_PLAN §1, §5, §6; RULES §8; NFR-07 |
 | Dependensi | TASK-002, TASK-003, TASK-005 |
@@ -310,12 +310,12 @@ X-Request-ID: 258a911e-9012-4cd0-8e58-431ebe020e13
 **Acceptance criteria:**
 - [ ] Push contoh memicu CI hijau untuk seluruh gate di atas. — **belum terverifikasi**: repo belum punya remote GitHub (`git remote -v` kosong), sehingga run CI nyata belum bisa dijalankan/dicatat.
 - [x] Suite integrasi contoh (1 tes DB sederhana lewat helper testdb) lulus di lokal terhadap `randesk_test`. (Di CI: otomatis lewat service container.)
-- [ ] Race detector aktif pada job terpisah dan lulus. — **belum terverifikasi lokal**: `go test -race` butuh cgo/gcc yang tidak ada di Windows dev (`-race requires cgo`); job CI `ubuntu-latest` menjalankannya.
+- [x] Race detector aktif dan lulus. — dibuktikan lokal: toolchain MinGW-w64 GCC 16.1.0 (WinLibs POSIX/UCRT via winget) dipasang; `CGO_ENABLED=1 go test -race ./...` **exit 0** (semua paket `ok`, termasuk `testdb` terhadap `randesk_test`). Skrip: `backend/scripts/run-race-task007.ps1`.
 - [x] Tidak ada secret di konfigurasi CI (hanya kredensial service container sementara + `env:` injection; `actions/*` tanpa token).
 
 **Verifikasi & bukti selesai:** URL/log run CI hijau, tangkapan daftar job.
 
-**Bukti sejauh ini (29 September 2026):** Workflow dibuat di `.github/workflows/ci.yml` (GitHub Actions — keputusan D-02/§4.2; tanpa karakter tab; 3 job: backend + service `postgres:17`, frontend, security-scan non-blocking `govulncheck`+`npm audit`). Helper `backend/internal/platform/testdb` menerapkan migrasi dari FS tertanam (`backend/migrations` `//go:embed`) via golang-migrate library + `postgres.WithInstance` di atas pool pgx (tanpa memakai DATABASE_URL dev; skip bila `TEST_DATABASE_URL` kosong). Bukti lokal: `gofmt -l` kosong; `go vet ./...` bersih; `go build ./...` sukses; `go test ./...` semua `ok` (testdb SKIP tanpa env, `?` no-test-files untuk db/respond/logger/migrations); **`TestIntegrationMigrateAndCRUD` PASS terhadap `randesk_test`** (migrate→insert department→count=1→CHECK name 1-karakter ditolak). Frontend gate (lint/typecheck/vitest 21 lulus/build) sudah hijau dari TASK-005/006. **Yang tersisa untuk `done`:** push ke remote GitHub + tautkan URL run CI hijau, dan pastikan job race Linux hijau.
+**Bukti sejauh ini (29 September 2026):** Workflow dibuat di `.github/workflows/ci.yml` (GitHub Actions — keputusan D-02/§4.2; tanpa karakter tab; 3 job: backend + service `postgres:17`, frontend, security-scan non-blocking `govulncheck`+`npm audit`). Helper `backend/internal/platform/testdb` menerapkan migrasi dari FS tertanam (`backend/migrations` `//go:embed`) via golang-migrate library + `postgres.WithInstance` di atas pool pgx (tanpa memakai DATABASE_URL dev; skip bila `TEST_DATABASE_URL` kosong). Bukti lokal: `gofmt -l` kosong; `go vet ./...` bersih; `go build ./...` sukses; `go test ./...` semua `ok` (testdb SKIP tanpa env); **`TestIntegrationMigrateAndCRUD` PASS terhadap `randesk_test`**; dan **`go test -race ./...` exit 0** dengan MinGW GCC 16.1.0 (CGO aktif) termasuk paket `testdb`. Frontend gate (lint/typecheck/vitest 21 lulus/build) hijau. **Yang tersisa untuk `done`:** push ke remote GitHub + tautkan URL run CI hijau.
 
 ---
 
