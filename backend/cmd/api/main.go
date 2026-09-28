@@ -21,6 +21,7 @@ import (
 	"randesk/backend/internal/platform/config"
 	"randesk/backend/internal/platform/db"
 	"randesk/backend/internal/platform/httpx"
+	"randesk/backend/internal/platform/httpx/middleware"
 )
 
 const shutdownTimeout = 15 * time.Second
@@ -62,7 +63,10 @@ func run() error {
 		return storageWritable(cfg.StorageRoot)
 	}
 
-	router := httpx.NewRouter(ready, 3*time.Second)
+	router := httpx.NewRouter(ready, 3*time.Second,
+		httpx.WithLogger(logger),
+		httpx.WithHandlerTimeout(middleware.DefaultHandlerTimeout),
+	)
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,

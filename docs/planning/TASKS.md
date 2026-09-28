@@ -12,7 +12,7 @@ ID task stabil (TASK-001…TASK-054); jangan menggunakan ulang ID yang dibatalka
 | TASK-001 | Inisialisasi repo, struktur, konfigurasi lingkungan | M0 | — | 2–4 jam | done |
 | TASK-002 | Skeleton backend Go (cmd/api, health, shutdown) | M0 | 001 | 3–5 jam | done |
 | TASK-003 | PostgreSQL dev + migrasi baseline DDL | M0 | 001 | 3–5 jam | done |
-| TASK-004 | Platform: request ID, log, error envelope, timeout | M0 | 002 | 4–6 jam | todo |
+| TASK-004 | Platform: request ID, log, error envelope, timeout | M0 | 002 | 4–6 jam | done |
 | TASK-005 | Skeleton frontend React (Vite, TS, Tailwind, shell) | M0 | 001 | 4–6 jam | todo |
 | TASK-006 | API client frontend + error mapping | M0 | 004, 005 | 3–4 jam | todo |
 | TASK-007 | CI + harness tes integrasi PostgreSQL | M0 | 002, 003, 005 | 4–6 jam | todo |
@@ -178,7 +178,7 @@ Catatan: TASK-048 `needs_verification` karena lingkungan acuan 2 vCPU/4 GiB (NFR
 
 | Atribut | Nilai |
 | --- | --- |
-| Milestone / Prioritas / Status | M0 / P0 / todo |
+| Milestone / Prioritas / Status | M0 / P0 / done (28 September 2026) |
 | DEV | DEV-03 |
 | Referensi | ARCHITECTURE §5, §10; API_SPEC §1–§3; NFR-05, NFR-08; SECURITY §8 (log tanpa body sensitif) |
 | Dependensi | TASK-002 |
@@ -198,12 +198,19 @@ Catatan: TASK-048 `needs_verification` karena lingkungan acuan 2 vCPU/4 GiB (NFR
 7. Tes: envelope tiap kelas error; field asing → 400; body >64 KiB → 413; timeout menghasilkan 500/504 terkontrol; log tidak memuat body.
 
 **Acceptance criteria:**
-- [ ] Setiap respons (sukses/error) memuat `meta.request_id` yang sama dengan header `X-Request-ID`.
-- [ ] Tabel error API_SPEC §3 terwakili mapper dengan code yang tepat (diuji table-driven).
-- [ ] JSON field asing/extra ditolak 400 tanpa mengeksekusi handler.
-- [ ] Log output JSON mengandung field wajib dan tidak mengandung nilai body.
+- [x] Setiap respons (sukses/error) memuat `meta.request_id` yang sama dengan header `X-Request-ID`.
+- [x] Tabel error API_SPEC §3 terwakili mapper dengan code yang tepat (diuji table-driven).
+- [x] JSON field asing/extra ditolak 400 tanpa mengeksekusi handler.
+- [x] Log output JSON mengandung field wajib dan tidak mengandung nilai body.
 
 **Verifikasi & bukti selesai:** hasil `go test ./internal/platform/...`, contoh output log.
+
+**Bukti selesai (28 September 2026):** `go test ./...` lulus semua paket; `gofmt -l` bersih; `go vet ./...` bersih. Paket baru: `httpx/apierr` (envelope + 22 konstruktor error + mapper `From`), `httpx/middleware` (RequestID/Recovery/BodyLimit/Logging/Timeout), `httpx/respond`, `platform/logger`. Tes table-driven `TestErrorMappingTableDriven` memetakan 22 kelas error ke status+code tepat. Bukti perilaku: request_id header == `meta.request_id` (`TestRequestID_HeaderMatchesEnvelopeMeta`), UUID unik antar-request; field asing → 400 MALFORMED_REQUEST (`TestDecodeJSON_UnknownFieldRejected400`, `TestDecodeJSON_Strict/field_asing_ditolak`), trailing data → 400; body berlebih → 413 PAYLOAD_TOO_LARGE (`TestBodyLimit_OversizedRejected413`); panic → 500 INTERNAL_ERROR tanpa stack di body klien sementara stack tercatat di log server (`TestRecovery_PanicBecomes500WithoutStack`); timeout → 500 terkontrol (kooperatif + backstop). Log JSON terverifikasi memuat `request_id/method/route(template)/status/duration_ms/time/level` dan TIDAK memuat nilai body (`TestLogging_RequiredFieldsAndNoBody`). Contoh output log nyata (server `APP_ENV=staging`, `scripts/sample-log-task004.ps1`):
+```
+X-Request-ID: 258a911e-9012-4cd0-8e58-431ebe020e13
+{"time":"2026-09-28T23:48:02.633+08:00","level":"INFO","msg":"http request","request_id":"258a911e-9012-4cd0-8e58-431ebe020e13","method":"GET","route":"/health/live","status":200,"duration_ms":0}
+```
+(request_id header == request_id log). Tidak ada dependensi baru: UUID v4 dihasilkan lewat `crypto/rand` stdlib. Deviasi: timeout handler dipetakan ke **500 INTERNAL_ERROR** (bukan 504) karena API_SPEC §3 tidak mendefinisikan code untuk 504; pendekatan timeout kooperatif via context turunan (bukan goroutine pembatalan) sesuai ARCHITECTURE §5 — dicatat di GAPS_AND_DECISIONS.md §10.
 
 ---
 
