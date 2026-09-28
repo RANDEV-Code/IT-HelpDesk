@@ -16,8 +16,10 @@ Aplikasi IT Helpdesk satu organisasi (proyek portofolio). Backend Go + Gin + Pos
 | Node.js | v22.16.0 (LTS) | via Laragon |
 | npm | 10.9.2 | |
 | Git | 2.37.3.windows.1 | |
-| PostgreSQL | *(diisi saat TASK-003 — installer native Windows EDB)* | Docker tidak tersedia di mesin dev |
-| golang-migrate | *(diisi saat TASK-003 — keputusan D-02)* | |
+| PostgreSQL | 17.11 (service `postgresql-x64-17`, port 5432) | Installer native Windows EDB via winget, 28 Sep 2026; superuser `postgres` |
+| golang-migrate | v4.20.1 (`C:\Users\ricoa\go\bin\migrate.exe`) | Keputusan D-02. **Wajib build tag**: `go install -tags postgres github.com/golang-migrate/migrate/v4/cmd/migrate@v4.20.1` — tanpa tag, driver postgres tidak ikut |
+
+Database dev: `randesk_dev` dan `randesk_test` (owner role `randesk_migrate`); role runtime API: `randesk_runtime` (grants penuh ditata di TASK-027). Bootstrap: `backend/scripts/dev-bootstrap.sql` + `backend/scripts/setup-task003.ps1`. Kredensial di `.env`/skrip adalah placeholder development — bukan secret produksi.
 
 Versi library Go terkunci di `backend/go.mod` (keputusan D-04, diperbarui 28 September 2026):
 

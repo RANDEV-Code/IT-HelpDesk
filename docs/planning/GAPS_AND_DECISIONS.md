@@ -131,3 +131,14 @@ Belum ada usulan perubahan kontrak yang diajukan pada tahap ini. Semua task dira
 5. **Setelah M2, lakukan re-baseline estimasi resmi** (GAP-02) dengan kecepatan nyata yang terukur; perbarui ROADMAP lewat perubahan tercatat.
 6. ~~Ajukan keputusan D-06 sekarang~~ **Selesai 26 Sep 2026**: pemilik proyek mengadopsi P-07 (walkthrough terstruktur) sebagai pengganti UAT penuh; seluruh usulan §4.2 dan D-02 disetujui.
 7. **Pertimbangkan memajukan TASK-050 (staging) ke akhir M2** bila VM/container target tersedia — ROADMAP §6 secara eksplisit menyarankan staging dini untuk menangkap deviasi hosting (R-04).
+
+## 10. Catatan deviasi eksekusi (ditambahkan saat implementasi)
+
+### TASK-003 — deviasi & temuan (27 September 2026)
+
+1. **Pembungkus `BEGIN/COMMIT` dilepas dari migrasi baseline.** DDL SCHEMA §4 disalin apa adanya ke `000001_baseline.up.sql` **kecuali** pembungkus `BEGIN;`/`COMMIT;` dokumen sumber, karena golang-migrate sudah menjalankan setiap migrasi dalam satu transaksi; `BEGIN` bersarang akan error di PostgreSQL. Isi DDL (tabel, kolom, CHECK, indeks, komentar) tidak diubah — bukan perubahan kontrak.
+2. **golang-migrate wajib di-build dengan tag `postgres`.** `go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest` tanpa tag menghasilkan binary tanpa driver ("unknown driver postgres"). Perintah terkunci (v4.20.1): `go install -tags postgres github.com/golang-migrate/migrate/v4/cmd/migrate@v4.20.1` — sudah dicatat di AGENTS.md.
+3. **Urutan evaluasi CHECK constraint.** Untuk status tiket invalid, PostgreSQL menolak lewat constraint tabel `tickets_lifecycle_ck` lebih dulu sebelum `tickets_status_check` (CHECK dievaluasi tanpa urutan terjamin). Enum status tetap ditegakkan; skrip uji (`check-constraints-task003.sql`) mengasertakan nama `tickets_lifecycle_ck` dan mendokumentasikan alasannya. Tidak ada perubahan schema.
+4. **Kolom identity tidak butuh grant sequence terpisah.** `tickets.ticket_no` dan `ticket_events.seq` memakai `GENERATED ALWAYS AS IDENTITY`, sehingga hak INSERT pada tabel sudah cukup untuk runtime role — tidak ada grant `USAGE/UPDATE ON SEQUENCE` tambahan (catatan SCHEMA §5 terpenuhi; grants penuh tetap dijadwalkan di TASK-027).
+5. **`migrate down` interaktif.** Perintah `migrate down` tanpa argumen meminta konfirmasi y/N; skrip memakai `migrate down 1`. Setelah down, tabel bookkeeping `schema_migrations` sengaja tersisa (perilaku bawaan golang-migrate) — bukan residu DDL aplikasi.
+6. **Versi final D-02/D-04 yang dieksekusi:** PostgreSQL 17.11 (installer native EDB, service `postgresql-x64-17`), golang-migrate v4.20.1. Password role dev adalah placeholder pengembangan (`*_dev`) dan hanya berlaku lokal — bukan secret produksi.

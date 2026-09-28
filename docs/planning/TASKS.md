@@ -9,9 +9,9 @@ ID task stabil (TASK-001…TASK-054); jangan menggunakan ulang ID yang dibatalka
 
 | ID | Judul singkat | Milestone | Dependensi | Estimasi | Status |
 | --- | --- | --- | --- | --- | --- |
-| TASK-001 | Inisialisasi repo, struktur, konfigurasi lingkungan | M0 | — | 2–4 jam | todo |
-| TASK-002 | Skeleton backend Go (cmd/api, health, shutdown) | M0 | 001 | 3–5 jam | todo |
-| TASK-003 | PostgreSQL dev + migrasi baseline DDL | M0 | 001 | 3–5 jam | todo |
+| TASK-001 | Inisialisasi repo, struktur, konfigurasi lingkungan | M0 | — | 2–4 jam | done |
+| TASK-002 | Skeleton backend Go (cmd/api, health, shutdown) | M0 | 001 | 3–5 jam | done |
+| TASK-003 | PostgreSQL dev + migrasi baseline DDL | M0 | 001 | 3–5 jam | done |
 | TASK-004 | Platform: request ID, log, error envelope, timeout | M0 | 002 | 4–6 jam | todo |
 | TASK-005 | Skeleton frontend React (Vite, TS, Tailwind, shell) | M0 | 001 | 4–6 jam | todo |
 | TASK-006 | API client frontend + error mapping | M0 | 004, 005 | 3–4 jam | todo |
@@ -74,7 +74,7 @@ Catatan: TASK-048 `needs_verification` karena lingkungan acuan 2 vCPU/4 GiB (NFR
 
 | Atribut | Nilai |
 | --- | --- |
-| Milestone / Prioritas / Status | M0 / P0 / todo |
+| Milestone / Prioritas / Status | M0 / P0 / done (27 September 2026) |
 | DEV / ADR | DEV-01; D-02, D-04 (dikunci di task ini) |
 | Referensi | ARCHITECTURE §1, §3; RULES §8; SECURITY §8; OPERATIONS §2 |
 | Dependensi | Tidak ada |
@@ -93,12 +93,14 @@ Catatan: TASK-048 `needs_verification` karena lingkungan acuan 2 vCPU/4 GiB (NFR
 6. Tulis `AGENTS.md` singkat: perintah build/test/lint, konvensi commit, larangan menyimpan secret.
 
 **Acceptance criteria:**
-- [ ] `git log` menunjukkan commit awal; working tree bersih.
-- [ ] Seluruh folder target ARCHITECTURE §3 ada (boleh berisi placeholder/README).
-- [ ] `.env.example` berisi semua variabel OPERATIONS §2, tanpa nilai rahasia.
-- [ ] Versi toolchain dan library tercatat di satu tempat (AGENTS.md atau DECISIONS bagian D-04 yang diperbarui sebagai usulan).
+- [x] `git log` menunjukkan commit awal; working tree bersih.
+- [x] Seluruh folder target ARCHITECTURE §3 ada (boleh berisi placeholder/README).
+- [x] `.env.example` berisi semua variabel OPERATIONS §2, tanpa nilai rahasia.
+- [x] Versi toolchain dan library tercatat di satu tempat (AGENTS.md atau DECISIONS bagian D-04 yang diperbarui sebagai usulan).
 
 **Verifikasi & bukti selesai:** tangkapan `git log --stat`, isi `.env.example`, daftar versi.
+
+**Bukti selesai (27 September 2026):** commit `028d09e` (branch `main`, 38 file: dokumen perencanaan + `.gitignore`, `.gitattributes`, `.env.example`, `AGENTS.md`); 18 folder target ARCHITECTURE §3 dibuat dengan `.gitkeep`; `.env.example` memuat 10 variabel OPERATIONS §2 dengan placeholder saja; versi dikunci di AGENTS.md (Go 1.26.4, Node v22.16.0, npm 10.9.2, git 2.37.3; library menyusul di TASK-002). Catatan: PostgreSQL dev baru terpasang saat TASK-003 (PostgreSQL 17.11 via installer EDB).
 
 ---
 
@@ -106,7 +108,7 @@ Catatan: TASK-048 `needs_verification` karena lingkungan acuan 2 vCPU/4 GiB (NFR
 
 | Atribut | Nilai |
 | --- | --- |
-| Milestone / Prioritas / Status | M0 / P0 / todo |
+| Milestone / Prioritas / Status | M0 / P0 / done (27 September 2026) |
 | DEV | DEV-01, DEV-03 |
 | Referensi | ARCHITECTURE §1, §3, §5, §10; OPERATIONS §2; NFR-08 |
 | Dependensi | TASK-001 |
@@ -125,13 +127,15 @@ Catatan: TASK-048 `needs_verification` karena lingkungan acuan 2 vCPU/4 GiB (NFR
 6. Tes unit config loader (env hilang → error jelas) dan tes smoke health via `httptest` (ready 503 saat DB tak tersedia).
 
 **Acceptance criteria:**
-- [ ] `go run ./cmd/api` start dengan `.env` dev; `GET /health/live` → 200.
-- [ ] `GET /health/ready` → 200 saat DB hidup, 503 saat DB mati, body tanpa connection string.
-- [ ] Ctrl+C menghentikan proses ≤15 detik tanpa panic.
-- [ ] Config production tanpa DATABASE_URL menolak start dengan pesan jelas.
-- [ ] `gofmt`, `go vet ./...`, `go test ./...` lulus.
+- [x] `go run ./cmd/api` start dengan `.env` dev; `GET /health/live` → 200.
+- [x] `GET /health/ready` → 200 saat DB hidup, 503 saat DB mati, body tanpa connection string.
+- [x] Ctrl+C menghentikan proses ≤15 detik tanpa panic.
+- [x] Config production tanpa DATABASE_URL menolak start dengan pesan jelas.
+- [x] `gofmt`, `go vet ./...`, `go test ./...` lulus.
 
 **Verifikasi & bukti selesai:** output perintah di atas + hasil tes.
+
+**Bukti selesai (27 September 2026):** commit `870f30a`; `go test ./...` lulus semua paket (config, httpx, cmd/api termasuk `TestGracefulShutdown` — sinyal CTRL_BREAK→SIGTERM, shutdown bersih ~4 ms, stdout memuat "api berhenti bersih", tanpa panic); smoke test `smoke-task002.ps1`: live → 200 `{"status":"ok"}`, ready → 503 saat DB mati (body tanpa detail), APP_ENV=production + DATABASE_URL kosong → exit 1 dengan pesan jelas; ready → 200 dibuktikan setelah DB hidup via `ready-check-task003.ps1`. Versi terkunci: Gin v1.12.0, pgx v5.11.0, x/sys v0.41.0 (AGENTS.md).
 
 ---
 
@@ -139,7 +143,7 @@ Catatan: TASK-048 `needs_verification` karena lingkungan acuan 2 vCPU/4 GiB (NFR
 
 | Atribut | Nilai |
 | --- | --- |
-| Milestone / Prioritas / Status | M0 / P0 / todo |
+| Milestone / Prioritas / Status | M0 / P0 / done (27 September 2026) |
 | DEV / Keputusan | DEV-02; D-02 dikunci di sini |
 | Referensi | SCHEMA §1–§5, §8; RULES §8 (migrasi immutable); TEST_PLAN §1 (integration pakai PostgreSQL nyata) |
 | Dependensi | TASK-001 |
@@ -159,12 +163,14 @@ Catatan: TASK-048 `needs_verification` karena lingkungan acuan 2 vCPU/4 GiB (NFR
 7. Buat role DB terpisah: migration owner vs runtime role (grants penuh ditunda ke TASK-027).
 
 **Acceptance criteria:**
-- [ ] Migrasi dari DB kosong berhasil tanpa error; seluruh 10 tabel + indeks SCHEMA §4 ada.
-- [ ] CHECK constraint teruji manual minimal: status invalid ditolak, version 0 ditolak, email tidak lowercase ditolak.
-- [ ] Down migration menghapus bersih; re-up berhasil.
-- [ ] Perintah migrate terdokumentasi dan dapat dijalankan ulang oleh orang lain.
+- [x] Migrasi dari DB kosong berhasil tanpa error; seluruh 10 tabel + indeks SCHEMA §4 ada.
+- [x] CHECK constraint teruji manual minimal: status invalid ditolak, version 0 ditolak, email tidak lowercase ditolak.
+- [x] Down migration menghapus bersih; re-up berhasil.
+- [x] Perintah migrate terdokumentasi dan dapat dijalankan ulang oleh orang lain.
 
 **Verifikasi & bukti selesai:** log eksekusi migrate up/down, hasil query verifikasi tabel/constraint.
+
+**Bukti selesai (27 September 2026):** PostgreSQL 17.11 terpasang (service `postgresql-x64-17`); golang-migrate v4.20.1 di-build dengan `-tags postgres`; `setup-task003.ps1` berakhir "SEMUA LANGKAH TASK-003 LULUS": 3 role (`randesk_migrate`, `randesk_runtime`, `randesk_operator` NOLOGIN) + DB `randesk_dev`/`randesk_test`; verifikasi 11 tabel (10 + `schema_migrations`), 40 indeks, 32 CHECK constraint; uji constraint via `check-constraints-task003.sql` — status invalid ditolak (`tickets_lifecycle_ck`), version 0 ditolak (`tickets_version_check`), email tidak lowercase ditolak (`users_email_normalized_ck`), deskripsi pendek ditolak (`tickets_description_check`), kontrol positif INSERT 0 1; identity `tickets.ticket_no` & `ticket_events.seq` = GENERATED ALWAYS; `down 1` menyisakan hanya `schema_migrations` lalu re-up bersih; `randesk_test` berada di version 1. Deviasi dicatat di GAPS_AND_DECISIONS.md §10.
 
 ---
 
