@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+/* Design tokens DESIGN §4 — dipakai sebagai Tailwind theme (bukan default mentah). */
+@theme {
+  /* 4.1 Warna */
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-ink: #0f172a; /* text.primary */
+  --color-muted: #475569; /* text.secondary */
+  --color-primary: #1d4ed8;
+  --color-line: #cbd5e1; /* border dekoratif/tabel */
+  --color-control: #64748b; /* batas input/checkbox */
+  --color-danger: #b91c1c;
+  --color-success: #166534;
+
+  /* Badge status: teks + latar (DESIGN §4.1) */
+  --color-status-open: #1e40af;
+  --color-status-open-bg: #dbeafe;
+  --color-status-progress: #92400e;
+  --color-status-progress-bg: #fef3c7;
+  --color-status-resolved: #166534;
+  --color-status-resolved-bg: #dcfce7;
+  --color-status-closed: #334155;
+  --color-status-closed-bg: #e2e8f0;
+
+  /* 4.2 Tipografi: judul halaman 28/36 desktop; mobile 24/32 (dipakai via kelas) */
+  --text-page-title: 28px;
+  --text-page-title--line-height: 36px;
+  --text-page-title-sm: 24px;
+  --text-page-title-sm--line-height: 32px;
+  --text-section: 20px;
+  --text-section--line-height: 28px;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-label: 14px;
+  --text-label--line-height: 20px;
+
+  /* Radius: kartu 12 px; input/tombol 8 px */
+  --radius-card: 12px;
+  --radius-control: 8px;
+}
+
+/* Font sistem tanpa dependensi eksternal (DESIGN §4.2) */
+@layer base {
+  html {
+    font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-ink);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+  /* Focus ring 2 px offset 2 px (DESIGN §4.2) */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* Animasi pendek 120-180 ms menghormati prefers-reduced-motion (DESIGN §4.2) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

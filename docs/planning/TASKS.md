@@ -13,7 +13,7 @@ ID task stabil (TASK-001…TASK-054); jangan menggunakan ulang ID yang dibatalka
 | TASK-002 | Skeleton backend Go (cmd/api, health, shutdown) | M0 | 001 | 3–5 jam | done |
 | TASK-003 | PostgreSQL dev + migrasi baseline DDL | M0 | 001 | 3–5 jam | done |
 | TASK-004 | Platform: request ID, log, error envelope, timeout | M0 | 002 | 4–6 jam | done |
-| TASK-005 | Skeleton frontend React (Vite, TS, Tailwind, shell) | M0 | 001 | 4–6 jam | todo |
+| TASK-005 | Skeleton frontend React (Vite, TS, Tailwind, shell) | M0 | 001 | 4–6 jam | done |
 | TASK-006 | API client frontend + error mapping | M0 | 004, 005 | 3–4 jam | todo |
 | TASK-007 | CI + harness tes integrasi PostgreSQL | M0 | 002, 003, 005 | 4–6 jam | todo |
 | TASK-008 | Password Argon2id + session store | M1 | 003, 004 | 4–6 jam | todo |
@@ -218,7 +218,7 @@ X-Request-ID: 258a911e-9012-4cd0-8e58-431ebe020e13
 
 | Atribut | Nilai |
 | --- | --- |
-| Milestone / Prioritas / Status | M0 / P0 / todo |
+| Milestone / Prioritas / Status | M0 / P0 / done (29 September 2026) |
 | DEV | DEV-01 |
 | Referensi | ARCHITECTURE §1, §7; DESIGN §4 (tokens), §5 (layout), §7 (komponen); RULES §8 |
 | Dependensi | TASK-001 |
@@ -239,13 +239,15 @@ X-Request-ID: 258a911e-9012-4cd0-8e58-431ebe020e13
 8. Gate: `npm run lint`, `typecheck`, `build` lulus.
 
 **Acceptance criteria:**
-- [ ] Dev server menampilkan shell; resize 360/768/1024/1440 px sesuai perilaku DESIGN §5.
-- [ ] Panggilan `/api` dari browser dev mencapai backend (bukti: health check tampil).
-- [ ] `tsc --noEmit` tanpa error dengan strict; lint dan production build lulus.
-- [ ] Token warna/tipografi DESIGN §4 terpakai (bukan default framework mentah).
-- [ ] Tanggal contoh dirender dalam WITA dengan label.
+- [x] Dev server menampilkan shell; resize 360/768/1024/1440 px sesuai perilaku DESIGN §5.
+- [x] Panggilan `/api` dari browser dev mencapai backend (bukti: health check tampil).
+- [x] `tsc --noEmit` tanpa error dengan strict; lint dan production build lulus.
+- [x] Token warna/tipografi DESIGN §4 terpakai (bukan default framework mentah).
+- [x] Tanggal contoh dirender dalam WITA dengan label.
 
 **Verifikasi & bukti selesai:** screenshot shell 3 viewport, output lint/typecheck/build.
+
+**Bukti selesai (29 September 2026):** `npm run typecheck` (`tsc --noEmit` strict) bersih; `npm run lint` 0 problem; `npm run test` (vitest) 5/5 lulus; `npm run build` sukses (dist index 0,42 kB + CSS 12,10 kB berisi token + JS 352,96 kB). Proxy Vite diverifikasi end-to-end: `Invoke-WebRequest http://localhost:5173/health/live` → `200 {"status":"ok"}` dengan header `X-Request-ID` (artinya request menembus ke Go + middleware TASK-004 aktif); di browser badge dashboard menampilkan **"Backend hidup: ok"**. WITA: `2026-09-26T04:00:00Z` dirender **"26 Sep 2026 12.00 WITA"** (UTC+8, benar). Responsif DESIGN §5 diverifikasi lewat pengukuran DOM/computed-style tiap lebar (via iframe same-origin): sidebar `w-60`=240px `position:static` terlihat permanen di 1440 & 1024; tersembunyi (`x=-240`) dengan tombol hamburger 44×44 `lg:hidden` di 768 & 360; klik hamburger → `aria-expanded` false→true, aside `translate-x-0` + backdrop muncul. Screenshot asli tersimpan 1 (docs/testing/probe3.png, lebar 976px mode drawer — menegakkan hamburger + badge + WITA); screenshot 4 lebar lain **terhambat keterbatasan otomasi browser** (tab `visibilityState=hidden` → rAF tidak fire → capture timeout), bukan bug aplikasi; perilaku telah dibuktikan terukur di atas. Versi frontend terkunci di `package-lock.json` (D-04).
 
 ---
 

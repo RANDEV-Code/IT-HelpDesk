@@ -29,7 +29,21 @@ Versi library Go terkunci di `backend/go.mod` (keputusan D-04, diperbarui 28 Sep
 | github.com/jackc/pgx/v5 | v5.11.0 | Driver PostgreSQL via database/sql (TASK-002) |
 | golang.org/x/sys | v0.41.0 | Sinyal CTRL_BREAK di tes Windows (TASK-002) |
 
-Versi library frontend (React, Vite, Tailwind, TanStack Query) dikunci di `frontend/package-lock.json` saat TASK-005.
+Versi library frontend terkunci di `frontend/package-lock.json` (keputusan D-04, diselesaikan saat TASK-005 29 September 2026):
+
+| Library | Versi | Catatan |
+| --- | --- | --- |
+| react / react-dom | ^19.3 | SPA |
+| react-router-dom | ^7.18 | Router (data/createBrowserRouter) |
+| @tanstack/react-query | ^5.104 | Server state |
+| vite | ^8.3 | Build tool + dev proxy `/api`, `/health` → `127.0.0.1:8080` |
+| @vitejs/plugin-react | ^6.1 | |
+| tailwindcss + @tailwindcss/vite | ^4.3 | Config CSS-first `@theme` (DESIGN §4), tanpa tailwind.config.js |
+| typescript | ^6.0 | `strict` penuh; typecheck = `tsc --noEmit` |
+| eslint + typescript-eslint + react-hooks/refresh | ^10 / ^8.70 | Flat config (`eslint.config.js`) |
+| vitest (+ jsdom) | ^5 / ^29 | Unit test; `npm run test` |
+
+Utilitas tanggal memakai `Intl` bawaan (zone `Asia/Makassar`) — tanpa dependensi date library. UUID frontend belum diperlukan (request ID dibuat backend).
 
 ## Perintah umum
 
