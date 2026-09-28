@@ -14,7 +14,7 @@ ID task stabil (TASK-001…TASK-054); jangan menggunakan ulang ID yang dibatalka
 | TASK-003 | PostgreSQL dev + migrasi baseline DDL | M0 | 001 | 3–5 jam | done |
 | TASK-004 | Platform: request ID, log, error envelope, timeout | M0 | 002 | 4–6 jam | done |
 | TASK-005 | Skeleton frontend React (Vite, TS, Tailwind, shell) | M0 | 001 | 4–6 jam | done |
-| TASK-006 | API client frontend + error mapping | M0 | 004, 005 | 3–4 jam | todo |
+| TASK-006 | API client frontend + error mapping | M0 | 004, 005 | 3–4 jam | done |
 | TASK-007 | CI + harness tes integrasi PostgreSQL | M0 | 002, 003, 005 | 4–6 jam | todo |
 | TASK-008 | Password Argon2id + session store | M1 | 003, 004 | 4–6 jam | todo |
 | TASK-009 | Middleware auth + CSRF + Origin | M1 | 008 | 4–6 jam | todo |
@@ -255,7 +255,7 @@ X-Request-ID: 258a911e-9012-4cd0-8e58-431ebe020e13
 
 | Atribut | Nilai |
 | --- | --- |
-| Milestone / Prioritas / Status | M0 / P0 / todo |
+| Milestone / Prioritas / Status | M0 / P0 / done (29 September 2026) |
 | DEV | DEV-01 |
 | Referensi | API_SPEC §1–§3, §10; SECURITY §4 (CSRF token di memori); ARCHITECTURE §7 |
 | Dependensi | TASK-004, TASK-005 |
@@ -274,12 +274,14 @@ X-Request-ID: 258a911e-9012-4cd0-8e58-431ebe020e13
 6. Tes komponen/unit (vitest): mapping tiap code, header CSRF terkirim, mutasi tidak di-retry.
 
 **Acceptance criteria:**
-- [ ] Error 422 VALIDATION_ERROR terpetakan ke struktur field yang bisa dirender form.
-- [ ] 409 VERSION_CONFLICT terpetakan ke error konflik dengan `current_version` bila ada.
-- [ ] Header `X-CSRF-Token` terkirim pada semua mutasi; token tidak pernah masuk localStorage.
-- [ ] Mutasi tidak di-retry otomatis; read di-retry terbatas.
+- [x] Error 422 VALIDATION_ERROR terpetakan ke struktur field yang bisa dirender form.
+- [x] 409 VERSION_CONFLICT terpetakan ke error konflik dengan `current_version` bila ada.
+- [x] Header `X-CSRF-Token` terkirim pada semua mutasi; token tidak pernah masuk localStorage.
+- [x] Mutasi tidak di-retry otomatis; read di-retry terbatas.
 
 **Verifikasi & bukti selesai:** hasil unit test frontend.
+
+**Bukti selesai (29 September 2026):** `npm run typecheck` bersih; `npm run lint` 0 problem; `npm run test` **21/21 lulus** (vitest, +5 tes date TASK-005); `npm run build` sukses. File: `frontend/src/lib/api/{types,errors,csrf,client}.ts` + `client.test.ts` + `errors.test.ts`; `providers.tsx` QueryClient memakai `queryRetryPolicy` + `mutationRetryPolicy=false`. Bukti per kriteria: `errors.test.ts` assert 422→`fields` map (isValidation true) dan 409→`current_version`=7 (isConflict) + 401 isUnauthorized + 429 retryAfter=30 + body non-JSON→generik; `client.test.ts` assert GET tanpa header CSRF meski token ter-set, POST/PUT/PATCH/DELETE mengirim `X-CSRF-Token`, credentials same-origin, fetch-reject→NETWORK_ERROR status 0, 204→data undefined, dan **`storageWrites` kosong** (token tidak pernah ditulis ke localStorage); retry policy: read retry utk 5xx/429/408/network/timeout s.d. maks 2, TIDAK utk 404/422/403, mutasi=false. Catatan: hook auto-refetch `/auth/me` setelah reload menunggu endpoint tersedia (TASK-010); interface + store CSRF sudah siap dan teruji lewat mock.
 
 ---
 
