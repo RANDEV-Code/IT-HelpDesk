@@ -27,7 +27,10 @@ Versi library Go terkunci di `backend/go.mod` (keputusan D-04, diperbarui 28 Sep
 | --- | --- | --- |
 | github.com/gin-gonic/gin | v1.12.0 | HTTP router (TASK-002) |
 | github.com/jackc/pgx/v5 | v5.11.0 | Driver PostgreSQL via database/sql (TASK-002) |
-| golang.org/x/sys | v0.41.0 | Sinyal CTRL_BREAK di tes Windows (TASK-002) |
+| golang.org/x/sys | v0.46.0 | Sinyal CTRL_BREAK di tes Windows (TASK-002) |
+| github.com/golang-migrate/migrate/v4 | v4.20.1 | Helper tes `testdb` (TASK-007); butuh `github.com/lib/pq` (indirect) untuk driver `postgres` |
+
+Catatan tes: `go test ./...` menjalankan unit tes dan **SKIP** tes integrasi PostgreSQL bila `TEST_DATABASE_URL` kosong. Untuk menjalankan tes integrasi lokal, set `TEST_DATABASE_URL` ke database **terisolasi** (`randesk_test`, BUKAN `randesk_dev`) — helper testdb menerapkan migrasi otomatis. `go test -race` membutuhkan cgo/gcc (tersedia di runner Linux CI, belum di Windows dev ini).
 
 Versi library frontend terkunci di `frontend/package-lock.json` (keputusan D-04, diselesaikan saat TASK-005 29 September 2026):
 

@@ -1,0 +1,96 @@
+name: CI
+
+# Gate TEST_PLAN §6: format/vet/test/build backend + race, lint/typecheck/test/build
+# frontend, migrasi ke PostgreSQL terisolasi, dan dependency scan (non-blocking).
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (Go + PostgreSQL)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          # Kredensial service container sementara — BUKAN secret produksi.
+          POSTGRES_USER: randesk
+          POSTGRES_PASSWORD: randesk_ci
+          POSTGRES_DB: randesk_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U randesk -d randesk_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://randesk:randesk_ci@localhost:5432/randesk_test?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+      - name: gofmt check
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; echo "gofmt: file belum diformat" >&2; exit 1; }
+      - name: go vet
+        run: go vet ./...
+      - name: build
+        run: go build ./...
+      - name: test (unit + integrasi, migrasi otomatis lewat helper testdb)
+        run: go test ./...
+      - name: race detector
+        run: go test -race ./...
+
+  frontend:
+    name: Frontend (React + TS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: npm ci
+        run: npm ci
+      - name: lint
+        run: npm run lint
+      - name: typecheck
+        run: npm run typecheck
+      - name: unit test
+        run: npm run test
+      - name: production build
+        run: npm run build
+
+  security-scan:
+    name: Dependency scan (non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+      - name: govulncheck
+        working-directory: backend
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: npm audit
+        working-directory: frontend
+        run: npm audit --audit-level=high || echo "npm audit menemukan temuan — dikaji manual (SECURITY §10)"

@@ -15,7 +15,7 @@ ID task stabil (TASK-001…TASK-054); jangan menggunakan ulang ID yang dibatalka
 | TASK-004 | Platform: request ID, log, error envelope, timeout | M0 | 002 | 4–6 jam | done |
 | TASK-005 | Skeleton frontend React (Vite, TS, Tailwind, shell) | M0 | 001 | 4–6 jam | done |
 | TASK-006 | API client frontend + error mapping | M0 | 004, 005 | 3–4 jam | done |
-| TASK-007 | CI + harness tes integrasi PostgreSQL | M0 | 002, 003, 005 | 4–6 jam | todo |
+| TASK-007 | CI + harness tes integrasi PostgreSQL | M0 | 002, 003, 005 | 4–6 jam | needs_verification |
 | TASK-008 | Password Argon2id + session store | M1 | 003, 004 | 4–6 jam | todo |
 | TASK-009 | Middleware auth + CSRF + Origin | M1 | 008 | 4–6 jam | todo |
 | TASK-010 | Endpoint auth (login/me/logout/change-password) | M1 | 009 | 4–6 jam | todo |
@@ -289,7 +289,7 @@ X-Request-ID: 258a911e-9012-4cd0-8e58-431ebe020e13
 
 | Atribut | Nilai |
 | --- | --- |
-| Milestone / Prioritas / Status | M0 / P0 / todo |
+| Milestone / Prioritas / Status | M0 / P0 / needs_verification (29 September 2026) — harness & gerbang lokal lulus; run CI hijau + `go test -race` menunggu push ke remote GitHub & runner Linux |
 | DEV | DEV-13 (bertahap sejak awal) |
 | Referensi | TEST_PLAN §1, §5, §6; RULES §8; NFR-07 |
 | Dependensi | TASK-002, TASK-003, TASK-005 |
@@ -308,12 +308,14 @@ X-Request-ID: 258a911e-9012-4cd0-8e58-431ebe020e13
 6. Badge/status check wajib pada branch utama; commit terfokus sesuai RULES §8.
 
 **Acceptance criteria:**
-- [ ] Push contoh memicu CI hijau untuk seluruh gate di atas.
-- [ ] Suite integrasi contoh (1 tes DB sederhana lewat helper testdb) lulus di CI dan lokal.
-- [ ] Race detector aktif pada job terpisah dan lulus.
-- [ ] Tidak ada secret di konfigurasi CI (hanya reference/env injection).
+- [ ] Push contoh memicu CI hijau untuk seluruh gate di atas. — **belum terverifikasi**: repo belum punya remote GitHub (`git remote -v` kosong), sehingga run CI nyata belum bisa dijalankan/dicatat.
+- [x] Suite integrasi contoh (1 tes DB sederhana lewat helper testdb) lulus di lokal terhadap `randesk_test`. (Di CI: otomatis lewat service container.)
+- [ ] Race detector aktif pada job terpisah dan lulus. — **belum terverifikasi lokal**: `go test -race` butuh cgo/gcc yang tidak ada di Windows dev (`-race requires cgo`); job CI `ubuntu-latest` menjalankannya.
+- [x] Tidak ada secret di konfigurasi CI (hanya kredensial service container sementara + `env:` injection; `actions/*` tanpa token).
 
 **Verifikasi & bukti selesai:** URL/log run CI hijau, tangkapan daftar job.
+
+**Bukti sejauh ini (29 September 2026):** Workflow dibuat di `.github/workflows/ci.yml` (GitHub Actions — keputusan D-02/§4.2; tanpa karakter tab; 3 job: backend + service `postgres:17`, frontend, security-scan non-blocking `govulncheck`+`npm audit`). Helper `backend/internal/platform/testdb` menerapkan migrasi dari FS tertanam (`backend/migrations` `//go:embed`) via golang-migrate library + `postgres.WithInstance` di atas pool pgx (tanpa memakai DATABASE_URL dev; skip bila `TEST_DATABASE_URL` kosong). Bukti lokal: `gofmt -l` kosong; `go vet ./...` bersih; `go build ./...` sukses; `go test ./...` semua `ok` (testdb SKIP tanpa env, `?` no-test-files untuk db/respond/logger/migrations); **`TestIntegrationMigrateAndCRUD` PASS terhadap `randesk_test`** (migrate→insert department→count=1→CHECK name 1-karakter ditolak). Frontend gate (lint/typecheck/vitest 21 lulus/build) sudah hijau dari TASK-005/006. **Yang tersisa untuk `done`:** push ke remote GitHub + tautkan URL run CI hijau, dan pastikan job race Linux hijau.
 
 ---
 
